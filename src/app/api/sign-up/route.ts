@@ -7,15 +7,12 @@ export async function POST(request: Request) {
   await dbConnect();
   try {
     const { username, email, password } = await request.json();
-
-    const existedUserFindByUsername = await UserModel.findOne({
-      username,
-      isVerified: true,
-    });
-
-    if (existedUserFindByUsername) {
+    if (!email || !password || !username) {
       return Response.json(
-        { success: "false", message: "username is already exist" },
+        {
+          success: false,
+          message: "email username or password is missing",
+        },
         { status: 400 }
       );
     }
@@ -32,6 +29,13 @@ export async function POST(request: Request) {
           },
           { status: 400 }
         );
+      } else {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        findUserByEmail.password = String(hashedPassword);
+        findUserByEmail.verifyCode = verifyCode;
+        findUserByEmail.verifyCodeExpiry = new Date(Date.now() + 3600000);
+
+        await findUserByEmail.save();
       }
     } else {
       const hashedPassword = await bcrypt.hash(password, 10);
@@ -42,7 +46,7 @@ export async function POST(request: Request) {
       const newUser = new UserModel({
         username,
         email,
-        password: hashedPassword,
+        password: String(hashedPassword),
         verifyCode,
         verifyCodeExpiry: expiryDate,
         isVerified: false,
@@ -51,6 +55,7 @@ export async function POST(request: Request) {
       });
       await newUser.save();
     }
+
     const emailResponse = await sendVerificationEmail(
       email,
       username,
