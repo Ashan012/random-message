@@ -15,6 +15,7 @@ export async function GET(request: Request) {
     };
     const result = usernameQuerySchema.safeParse(queryParams);
 
+    console.log("result===>", result);
     if (!result.success) {
       const usernameError = result.error.format().username?._errors || [];
       return Response.json(
@@ -29,7 +30,7 @@ export async function GET(request: Request) {
       );
     }
 
-    const { username }: any = result.data;
+    const { username } = result.data;
     const existingVerifiedUser = await UserModel.findOne({
       username,
       isVerified: true,
