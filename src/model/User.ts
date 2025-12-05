@@ -11,11 +11,8 @@ const MessageSchema: Schema<Message> = new Schema({
     required: true,
   },
   createdAt: {
-    Date: {
-      type: Date,
-      required: true,
-      default: Date.now,
-    },
+    type: Date,
+    required: true,
   },
 });
 
